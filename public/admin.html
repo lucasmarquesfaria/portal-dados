@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Radar Admin</title>
+    <title>Admin - Localizações</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -50,61 +50,56 @@
 </head>
 <body>
     <div class="container">
-        <button onclick="carregarLocalizacoes()" class="refresh">Atualizar</button>
+        <button onclick="atualizar()" class="refresh">Atualizar Lista</button>
         <table>
             <thead>
                 <tr>
                     <th>Data/Hora</th>
                     <th>Latitude</th>
                     <th>Longitude</th>
-                    <th>Mapa</th>
+                    <th>Ações</th>
                 </tr>
             </thead>
-            <tbody id="localizacoes"></tbody>
+            <tbody id="lista"></tbody>
         </table>
     </div>
 
     <script>
-        const baseUrl = window.location.origin;
-        
-        function carregarLocalizacoes() {
-            fetch(`${baseUrl}/api/locations`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Erro na resposta do servidor');
-                    }
-                    return response.json();
-                })
+        function atualizar() {
+            fetch('/api/locations')
+                .then(res => res.json())
                 .then(data => {
-                    const tbody = document.getElementById('localizacoes');
-                    tbody.innerHTML = '';
+                    const lista = document.getElementById('lista');
+                    lista.innerHTML = '';
                     
-                    data.forEach(local => {
+                    data.forEach(item => {
                         const row = document.createElement('tr');
-                        const data = new Date(local.timestamp);
+                        const data = new Date(item.timestamp);
                         
                         row.innerHTML = `
                             <td>${data.toLocaleString('pt-BR')}</td>
-                            <td>${local.latitude}</td>
-                            <td>${local.longitude}</td>
-                            <td><a href="https://www.google.com/maps?q=${local.latitude},${local.longitude}" 
-                                  target="_blank" class="map-link">Ver no Mapa</a></td>
+                            <td>${item.latitude}</td>
+                            <td>${item.longitude}</td>
+                            <td>
+                                <a href="https://www.google.com/maps?q=${item.latitude},${item.longitude}" 
+                                   target="_blank" class="map-link">Ver no Mapa</a>
+                            </td>
                         `;
                         
-                        tbody.appendChild(row);
+                        lista.appendChild(row);
                     });
                 })
                 .catch(error => {
                     console.error('Erro:', error);
-                    alert('Erro ao carregar localizações. Por favor, tente novamente.');
+                    alert('Erro ao carregar localizações');
                 });
         }
 
-        // Carregar ao iniciar a página
-        carregarLocalizacoes();
+        // Carregar dados ao abrir a página
+        atualizar();
         
         // Atualizar a cada 30 segundos
-        setInterval(carregarLocalizacoes, 30000);
+        setInterval(atualizar, 30000);
     </script>
 </body>
 </html>
