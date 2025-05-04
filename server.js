@@ -2,7 +2,6 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
-require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -10,9 +9,9 @@ const port = process.env.PORT || 3000;
 // Configurações básicas
 app.use(cors());
 app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static('public'));
 
-// Armazenar as localizações (em um ambiente real, você usaria um banco de dados)
+// Armazenar as localizações em memória
 let locations = [];
 
 // Rota para receber a localização
@@ -27,21 +26,11 @@ app.post('/api/location', (req, res) => {
     res.json({ success: true });
 });
 
-// Rota para obter todas as localizações (sem autenticação)
+// Rota para obter todas as localizações
 app.get('/api/locations', (req, res) => {
     res.json(locations);
 });
 
-// Rota para a página admin
-app.get('/admin.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'admin.html'));
-});
-
-// Rota padrão
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-app.listen(port, '0.0.0.0', () => {
+app.listen(port, () => {
     console.log(`Servidor rodando na porta ${port}`);
 });
