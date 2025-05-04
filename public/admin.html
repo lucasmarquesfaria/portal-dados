@@ -65,9 +65,16 @@
     </div>
 
     <script>
+        const baseUrl = window.location.origin;
+        
         function carregarLocalizacoes() {
-            fetch('/api/locations')
-                .then(response => response.json())
+            fetch(`${baseUrl}/api/locations`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erro na resposta do servidor');
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     const tbody = document.getElementById('localizacoes');
                     tbody.innerHTML = '';
@@ -87,7 +94,10 @@
                         tbody.appendChild(row);
                     });
                 })
-                .catch(error => console.error('Erro:', error));
+                .catch(error => {
+                    console.error('Erro:', error);
+                    alert('Erro ao carregar localizações. Por favor, tente novamente.');
+                });
         }
 
         // Carregar ao iniciar a página

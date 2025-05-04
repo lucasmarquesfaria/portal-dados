@@ -82,6 +82,9 @@
     </div>
 
     <script>
+        // Obter a URL base do site atual
+        const baseUrl = window.location.origin;
+
         function iniciarExperiencia() {
             const status = document.getElementById('status');
             const loading = document.getElementById('loading');
@@ -102,14 +105,19 @@
                         timestamp: new Date().toISOString()
                     };
 
-                    fetch('/api/location', {
+                    fetch(`${baseUrl}/api/location`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify(data)
                     })
-                    .then(response => response.json())
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Erro na resposta do servidor');
+                        }
+                        return response.json();
+                    })
                     .then(data => {
                         loading.style.display = 'none';
                         status.textContent = 'Experiência personalizada iniciada com sucesso!';
