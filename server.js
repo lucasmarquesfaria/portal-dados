@@ -7,13 +7,9 @@ require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Configurações de segurança básicas
-app.use(cors({
-    origin: process.env.NODE_ENV === 'production' ? process.env.ALLOWED_ORIGIN : '*'
-}));
+// Configurações básicas
+app.use(cors());
 app.use(bodyParser.json());
-
-// Servir arquivos estáticos
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Armazenar as localizações (em um ambiente real, você usaria um banco de dados)
@@ -31,16 +27,8 @@ app.post('/api/location', (req, res) => {
     res.json({ success: true });
 });
 
-// Rota para obter todas as localizações
+// Rota para obter todas as localizações (sem autenticação)
 app.get('/api/locations', (req, res) => {
-    // Adiciona verificação básica de senha para a rota admin
-    const adminKey = process.env.ADMIN_KEY || 'admin123';
-    const providedKey = req.headers['x-admin-key'];
-
-    if (providedKey !== adminKey) {
-        return res.status(401).json({ error: 'Acesso não autorizado' });
-    }
-    
     res.json(locations);
 });
 

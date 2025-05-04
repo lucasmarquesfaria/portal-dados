@@ -55,72 +55,30 @@
         .refresh-btn:hover {
             background-color: #45a049;
         }
-        .admin-input {
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-        #loginStatus {
-            color: #ff4444;
-            margin-top: 10px;
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div id="loginForm">
-            <h1>Acesso Administrativo</h1>
-            <input type="password" id="adminKey" placeholder="Chave de Acesso" class="admin-input">
-            <button onclick="verificarAcesso()" class="refresh-btn">Acessar</button>
-            <p id="loginStatus"></p>
-        </div>
-        
-        <div id="dashboard" style="display: none;">
-            <h1>Painel de Administração - Localizações</h1>
-            <button onclick="loadLocations()" class="refresh-btn">Atualizar Lista</button>
-            <table id="locationsList">
-                <thead>
-                    <tr>
-                        <th>Data/Hora</th>
-                        <th>Latitude</th>
-                        <th>Longitude</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody id="locationsBody"></tbody>
-            </table>
-        </div>
+        <h1>Painel de Administração - Localizações</h1>
+        <button onclick="loadLocations()" class="refresh-btn">Atualizar Lista</button>
+        <table id="locationsList">
+            <thead>
+                <tr>
+                    <th>Data/Hora</th>
+                    <th>Latitude</th>
+                    <th>Longitude</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="locationsBody"></tbody>
+        </table>
     </div>
 
     <script>
-        let adminKey = '';
-
-        function verificarAcesso() {
-            const keyInput = document.getElementById('adminKey');
-            adminKey = keyInput.value;
-            
-            loadLocations(); // Tenta carregar as localizações para verificar o acesso
-        }
-
         function loadLocations() {
-            fetch('/api/locations', {
-                headers: {
-                    'X-Admin-Key': adminKey
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Acesso não autorizado');
-                }
-                return response.json();
-            })
+            fetch('/api/locations')
+            .then(response => response.json())
             .then(locations => {
-                document.getElementById('loginForm').style.display = 'none';
-                document.getElementById('dashboard').style.display = 'block';
-                
                 const tbody = document.getElementById('locationsBody');
                 tbody.innerHTML = '';
                 
@@ -143,13 +101,16 @@
                 });
             })
             .catch(error => {
-                document.getElementById('loginStatus').textContent = 'Chave de acesso inválida';
-                console.error('Erro:', error);
+                console.error('Erro ao carregar localizações:', error);
+                alert('Erro ao carregar localizações. Por favor, tente novamente.');
             });
         }
 
         // Carregar localizações quando a página carregar
         document.addEventListener('DOMContentLoaded', loadLocations);
+
+        // Atualizar a cada 30 segundos
+        setInterval(loadLocations, 30000);
     </script>
 </body>
 </html>
